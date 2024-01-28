@@ -41,6 +41,6 @@ The following data files must be present in the `data` directory for successful 
 
 ## Output Files
 
--   `combined_postcode_sales.csv`: Located in the `output` directory, this file combines all data with normalized prices, postcodes, and geographical coordinates.
+-   `combined_postcode_sales.csv`: Located in the `output` directory, this file combines all data with normalised prices, postcodes, and geographical coordinates.
 -   `housing_map.geojson`: Also in the `output` directory, this GeoJSON file includes spatially joined data with average prices per area and year.
 -   `bins.json`: File showing the percentile and median values for the dataset.
