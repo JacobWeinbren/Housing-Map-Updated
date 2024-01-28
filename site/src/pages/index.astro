@@ -1,0 +1,29 @@
+---
+import Map from "../components/Map.astro";
+---
+
+<div id="map-container" style="height: 100vh"></div>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="House Prices 1995-2022 Mapped" />
+		<link
+			rel="stylesheet"
+			href="https://js.arcgis.com/4.28/esri/themes/light/main.css"
+		/>
+		<link
+			href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css"
+			rel="stylesheet"
+		/>
+		<title>Housing Prces Map</title>
+	</head>
+	<body>
+		<Map />
+	</body>
+</html>

@@ -46,7 +46,7 @@ for fid, group in tqdm(avg_prices.groupby("fid"), desc="Updating Properties"):
         for _, row in group.iterrows():
             year_key = f"year_{int(row['year'])}"
             # Directly update the GeoDataFrame's column for the feature
-            gdf_areas.loc[gdf_areas.index == fid, year_key] = row["avg_price"]
+            gdf_areas.loc[gdf_areas.index == fid, year_key] = round(row["avg_price"], 2)
 
 # Save the modified GeoDataFrame to a new GeoJSON file
 output_file_path = "output/housing_map.geojson"
