@@ -1,4 +1,4 @@
-# Updated Housing Map Documentation
+# Updated Housing Map
 
 ## Data Sources
 
