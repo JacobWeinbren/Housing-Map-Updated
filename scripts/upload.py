@@ -13,10 +13,10 @@ if not os.getenv("MAPBOX_ACCESS_TOKEN"):
 uploader = Uploader()
 
 # Specify the path to your MBTiles file
-mbtiles_file = "output/buildings.mbtiles"
+mbtiles_file = "output/housing_map.mbtiles"
 
 # Create a unique tileset ID for your upload. This is typically in the format {username}.{tileset_name}
-tileset_id = "edmiliband.buildings"
+tileset_id = "edmiliband.housing_map"
 
 # Start the upload process
 with open(mbtiles_file, "rb") as src:
