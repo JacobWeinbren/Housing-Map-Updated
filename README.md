@@ -32,7 +32,7 @@
    Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
 
     ```
-    docker run -it -d -v /root/map-server/data:/data -p 8080:8080 maptiler/tileserver-gl
+    docker run -it -d -v /root/map-server/data:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
     ```
 
 5. **Data Binning and Analysis**:
