@@ -21,7 +21,7 @@
     ```bash
     tippecanoe --output=output/buildings.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders  --minimum-zoom=0 --coalesce-fraction-as-needed  --simplify-only-low-zooms --coalesce-densest-as-needed --coalesce-smallest-as-needed --maximum-zoom=19 data/buildings.geojson
     ```
-4. **Uploading MBTiles:** Use `output/upload.py` to upload the MBTiles files to Mapbox.
+4. **Hosting:** For hosting, [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) is utilised. Ensure access to a VPN that accommodates Docker containers for this purpose. Files should be placed within a `data` directory, followed by executing the instructions provided in the linked guide.
 5. **Data Binning and Analysis:** Run `output/bins.py` to calculate the median and percentile values for normalized property prices annually. The script outputs these metrics in a JSON file.
 
 ## Key Assumptions
