@@ -45,7 +45,7 @@ for feature in tqdm(geojson_data["features"], desc="Updating Properties"):
 print("Dropping specified columns...")
 gdf_areas = gdf_areas.drop(columns=["fid", "OA21CD", "la23cd", "sg", "g", "subg"])
 
-output_file_path = "output/housing_map_rounded.geojson"
+output_file_path = "output/housing_map.geojson"
 with open(output_file_path, "w") as file:
     json.dump(geojson_data, file)
 

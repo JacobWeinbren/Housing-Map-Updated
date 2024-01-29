@@ -6,11 +6,11 @@
 <div id="geocoder" class="geocoder fixed top-4 left-4 z-10"></div>
 
 <script>
-	import { MapboxOverlay as DeckOverlay } from "@deck.gl/mapbox";
-	import { ScatterplotLayer } from "@deck.gl/layers";
-	import GL from "@luma.gl/constants";
+	import { MapboxOverlay } from "@deck.gl/mapbox";
+	import { MVTLayer } from "@deck.gl/geo-layers";
 	import mapboxgl from "mapbox-gl";
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+	import GL from "@luma.gl/constants";
 
 	// Mapbox Access Token and Style
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
@@ -20,12 +20,48 @@
 	export const map = new mapboxgl.Map({
 		container: "map-container",
 		style: MAPBOX_STYLE,
-		center: [-3.435973, 51.355518],
+		center: [-3.4, 51.3],
 		zoom: 5.5,
-		projection: {
-			name: "mercator",
-		},
 		accessToken: MAPBOX_TOKEN,
+	});
+
+	// Define the MVTLayer for buildings with 3D extrusion
+
+	// Define the MVTLayer for buildings and housing map
+	const layers = [
+		new MVTLayer({
+			id: "housing-map",
+			data: "https://map.kafkaesque.blog/data/housing_map/{z}/{x}/{y}.pbf",
+			minZoom: 0,
+			maxZoom: 23,
+			getLineColor: [192, 192, 192],
+			getFillColor: [140, 170, 180],
+			lineWidthMinPixels: 1,
+			opacity: 0.5,
+			parameters: {
+				depthTest: false,
+			},
+		}),
+	];
+
+	// Setup DeckOverlay to manage Deck.gl layers
+	const deckOverlay = new MapboxOverlay({ layers });
+
+	map.on("load", () => {
+		map.addLayer({
+			id: "3d-buildings",
+			source: "composite",
+			"source-layer": "building",
+			filter: ["==", "extrude", "true"],
+			type: "fill-extrusion",
+			minzoom: 14,
+			paint: {
+				"fill-extrusion-color": "#ccc",
+				"fill-extrusion-height": ["get", "height"],
+			},
+		});
+		map.addControl(deckOverlay);
+		map.addControl(new mapboxgl.NavigationControl());
 	});
 
 	// Add geocoder/search box
@@ -34,8 +70,5 @@
 		mapboxgl: mapboxgl,
 	});
 
-	const geocoderElement = document.getElementById("geocoder");
-	if (geocoderElement) {
-		geocoderElement.appendChild(geocoder.onAdd(map));
-	}
+	document.getElementById("geocoder").appendChild(geocoder.onAdd(map));
 </script>

@@ -10,33 +10,34 @@
 
 ## Processing Workflow
 
-1. **Data Merging**:
-   Run `combine.py` to integrate data from the above sources. Ensure all necessary data files are in the `data` directory before execution.
+1.  **Data Merging**:
+    Run `combine.py` to integrate data from the above sources. Ensure all necessary data files are in the `data` directory before execution.
 
-2. **Data Conversion and Spatial Analysis**:
-   Execute `process_combined.py`. This script transforms CSV data into a GeoDataFrame, performs spatial joins, calculates average property prices, and exports the results to `housing_map.geojson`.
+2.  **Data Conversion and Spatial Analysis**:
+    Execute `process_combined.py`. This script transforms CSV data into a GeoDataFrame, performs spatial joins, calculates average property prices, and exports the results to `housing_map.geojson`.
 
-3. **MBTiles Generation**:
-   Convert GeoJSON to MBTiles using Tippecanoe. Example commands:
+3.  **Intersect Maps**:
 
-    - For Housing Map:
-        ```
-        tippecanoe --output=output/housing_map.mbtiles ... output/housing_map.geojson
-        ```
-    - For Building Data:
-        ```
-        tippecanoe --output=output/buildings.mbtiles ... data/buildings.geojson
-        ```
+    ```bash
+    ogr2ogr -clipsrc buildings.geojson merged.geojson housing_map.geojson
+    ```
 
-4. **Hosting**:
-   Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
+4.  **MBTiles Generation**:
+    Convert GeoJSON to MBTiles using Tippecanoe. Example commands:
+
+    ```
+    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --coalesce-fraction-as-needed --simplify-only-low-zooms --coalesce-densest-as-needed --coalesce-smallest-as-needed --maximum-zoom=19 --simplification=2 output/merged.geojson
+    ```
+
+5.  **Hosting**:
+    Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
 
     ```
     docker run -it -d -v /root/map-server/data:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
     ```
 
-5. **Data Binning and Analysis**:
-   Run `bins.py` to calculate median and percentile values for property prices. Outputs in `bins.json`.
+6.  **Data Binning and Analysis**:
+    Run `bins.py` to calculate median and percentile values for property prices. Outputs in `bins.json`.
 
 ## Key Assumptions
 
