@@ -1,0 +1,10 @@
+{
+	"data": {
+		"buildings": {
+			"mbtiles": "buildings.mbtiles"
+		},
+		"housing_map": {
+			"mbtiles": "housing_map.mbtiles"
+		}
+	}
+}
