@@ -29,10 +29,10 @@
         ```
 
 4. **Hosting**:
-   Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command:
+   Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
 
     ```
-    docker run -it -v /root/map-server/data:/data -p 8080:8080 maptiler/tileserver-gl
+    docker run -it -d -v /root/map-server/data:/data -p 8080:8080 maptiler/tileserver-gl
     ```
 
 5. **Data Binning and Analysis**:
