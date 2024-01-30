@@ -19,14 +19,14 @@
 3.  **Intersect Maps**:
 
     ```bash
-    ogr2ogr -clipsrc buildings.geojson merged.geojson housing_map.geojson
+    python intersect.py
     ```
 
 4.  **MBTiles Generation**:
     Convert GeoJSON to MBTiles using Tippecanoe. Example commands:
 
     ```
-    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --coalesce-fraction-as-needed --simplify-only-low-zooms --coalesce-densest-as-needed --coalesce-smallest-as-needed --maximum-zoom=19 --simplification=2 output/merged.geojson
+    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=9 --maximum-zoom=14 --simplification=20 -x subg -x g -x sg -x la23cd -x OA21CD -x fid_2 -x code -x feature_id -x fid_1 -x fid -x feature_code output/merged.geojson
     ```
 
 5.  **Hosting**:

@@ -1,0 +1,82 @@
+<div
+	class="absolute bottom-10 rounded-md z-10 bg-black bg-opacity-30 backdrop-blur-[20px] backdrop-saturate-[3] p-4 left-1/2 transform -translate-x-1/2"
+>
+	<div id="map-legend" class=""></div>
+</div>
+<script>
+	import * as d3 from "d3";
+
+	// Assuming D3 v6
+	const svg = d3
+		.select("#map-legend")
+		.append("svg")
+		.attr("width", 400)
+		.attr("height", 75);
+
+	const defs = svg.append("defs");
+
+	const linearGradient = defs
+		.append("linearGradient")
+		.attr("id", "gradient-colors");
+
+	// Define the gradient stops using the colors from your map
+	linearGradient
+		.selectAll("stop")
+		.data([
+			{ offset: "0%", color: "rgb(16, 48, 94)" },
+			{ offset: "25%", color: "rgb(136, 152, 175)" },
+			{ offset: "50%", color: "rgb(255, 255, 255)" },
+			{ offset: "75%", color: "rgb(210, 153, 139)" },
+			{ offset: "100%", color: "rgb(165, 50, 23)" },
+		])
+		.enter()
+		.append("stop")
+		.attr("offset", (d) => d.offset)
+		.attr("stop-color", (d) => d.color);
+
+	// Draw the rectangle and fill it with the gradient
+	svg.append("rect")
+		.attr("width", 300)
+		.attr("height", 20)
+		.attr("x", 50) // Adjust as needed
+		.attr("y", 30) // Adjust as needed
+		.style("fill", "url(#gradient-colors)");
+
+	// Add title above the legend
+	svg.append("text")
+		.attr("x", 200) // Centered above the legend
+		.attr("y", 15) // Position above the gradient rectangle
+		.attr("text-anchor", "middle") // Ensure the text is centered
+		.attr("fill", "#ffffff") // Set the text color to white
+		.attr("font-size", "16px") // Adjust font size as needed
+		.text("House Prices as a Multiple of Median Salary");
+
+	// Add the vertical line indicator
+	const indicatorLine = svg
+		.append("line")
+		.attr("id", "value-indicator-line") // ID to target for moving the line
+		.attr("x1", 50) // Initial X position
+		.attr("y1", 30) // Top Y position of the line
+		.attr("x2", 50) // Initial X position (same as x1 for vertical line)
+		.attr("y2", 50) // Bottom Y position of the line
+		.attr("stroke", "black") // Line color
+		.attr("stroke-width", 2); // Line width
+
+	// Add labels at the start, midpoint, and end of the gradient
+	const labels = [
+		{ position: "0", x: 50 },
+		{ position: "25", x: 200 },
+		{ position: "50", x: 350 },
+	];
+
+	svg.selectAll(".label")
+		.data(labels)
+		.enter()
+		.append("text")
+		.attr("class", "label")
+		.attr("x", (d) => d.x)
+		.attr("y", 75) // Adjusted to move the text further down
+		.attr("text-anchor", "middle")
+		.attr("fill", "#ffffff") // Set the text color to white
+		.text((d) => d.position);
+</script>

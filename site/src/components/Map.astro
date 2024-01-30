@@ -1,74 +1,138 @@
 ---
-
+import Chart from "./Chart.astro";
 ---
 
-<div id="map-container" style="height: 100vh"></div>
+<style>
+	#gradient-bar {
+		background: linear-gradient(
+			to right,
+			rgb(16, 48, 94),
+			rgb(136, 152, 175),
+			rgb(255, 255, 255),
+			rgb(210, 153, 139),
+			rgb(165, 50, 23)
+		);
+	}
+
+	#value-indicator-line {
+		transition: left 300ms ease-in-out;
+	}
+</style>
+
+<div id="map" class="!absolute top-0 left-0 w-screen h-screen"></div>
 <div id="geocoder" class="geocoder fixed top-4 left-4 z-10"></div>
+<Chart />
 
 <script>
-	import { MapboxOverlay } from "@deck.gl/mapbox";
-	import { MVTLayer } from "@deck.gl/geo-layers";
 	import mapboxgl from "mapbox-gl";
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-	import GL from "@luma.gl/constants";
+	import * as d3 from "d3";
 
-	// Mapbox Access Token and Style
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
-	const MAPBOX_STYLE = "mapbox://styles/mapbox/dark-v11";
+	let currentYear = 1995;
 
-	// Initialize the map
-	export const map = new mapboxgl.Map({
-		container: "map-container",
-		style: MAPBOX_STYLE,
-		center: [-3.4, 51.3],
-		zoom: 5.5,
+	const map = new mapboxgl.Map({
+		container: "map",
+		center: [-0.2, 51.5],
+		zoom: 9,
+		minZoom: 9,
+		maxZoom: 14,
+		style: "mapbox://styles/mapbox/dark-v11",
 		accessToken: MAPBOX_TOKEN,
+		antialias: true,
+		projection: { name: "mercator" },
 	});
 
-	// Define the MVTLayer for buildings with 3D extrusion
-
-	// Define the MVTLayer for buildings and housing map
-	const layers = [
-		new MVTLayer({
-			id: "housing-map",
-			data: "https://map.kafkaesque.blog/data/housing_map/{z}/{x}/{y}.pbf",
-			minZoom: 0,
-			maxZoom: 23,
-			getLineColor: [192, 192, 192],
-			getFillColor: [140, 170, 180],
-			lineWidthMinPixels: 1,
-			opacity: 0.5,
-			parameters: {
-				depthTest: false,
-			},
-		}),
-	];
-
-	// Setup DeckOverlay to manage Deck.gl layers
-	const deckOverlay = new MapboxOverlay({ layers });
+	function generateColorExpression() {
+		return [
+			"case",
+			["!", ["has", `year_${currentYear}`]],
+			"rgba(0,0,0,0)",
+			[
+				"interpolate",
+				["linear"],
+				["to-number", ["get", `year_${currentYear}`], 0],
+				0,
+				"rgb(16, 48, 94)",
+				12.5,
+				"rgb(136, 152, 175)",
+				25,
+				"rgb(255, 255, 255)",
+				37.5,
+				"rgb(210, 153, 139)",
+				50,
+				"rgb(165, 50, 23)",
+			],
+		] as any;
+	}
 
 	map.on("load", () => {
-		map.addLayer({
-			id: "3d-buildings",
-			source: "composite",
-			"source-layer": "building",
-			filter: ["==", "extrude", "true"],
-			type: "fill-extrusion",
-			minzoom: 14,
-			paint: {
-				"fill-extrusion-color": "#ccc",
-				"fill-extrusion-height": ["get", "height"],
-			},
+		map.addSource("merged", {
+			type: "vector",
+			tiles: ["https://map.kafkaesque.blog/data/merged/{z}/{x}/{y}.pbf"],
 		});
-		map.addControl(deckOverlay);
+		map.addLayer(
+			{
+				id: "map",
+				"source-layer": "merged",
+				paint: {
+					"fill-color": generateColorExpression(),
+					"fill-opacity": 1,
+				},
+				type: "fill",
+				source: "merged",
+			},
+			"road-label-simple"
+		);
 		map.addControl(new mapboxgl.NavigationControl());
+
+		map.on("mousemove", "map", (e) => {
+			if (e.features.length > 0) {
+				const value = e.features[0].properties[`year_${currentYear}`];
+				if (value) {
+					const positionX =
+						50 +
+						(((Math.min(Math.max(value, 0), 50) / 50) * 100) /
+							100) *
+							300;
+					d3.select("#value-indicator-line")
+						.transition()
+						.duration(300)
+						.attr("x1", positionX)
+						.attr("x2", positionX);
+				}
+			}
+		});
+
+		(
+			document.querySelector(".mapboxgl-canvas-container") as HTMLElement
+		).style.cursor = "crosshair";
 	});
 
-	// Add geocoder/search box
 	const geocoder = new MapboxGeocoder({
 		accessToken: MAPBOX_TOKEN,
 		mapboxgl: mapboxgl,
 	});
-
 	document.getElementById("geocoder").appendChild(geocoder.onAdd(map));
+
+	declare global {
+		interface Window {
+			loadNewData: () => void;
+		}
+	}
+
+	window.loadNewData = () => {
+		const selectedYearElement = document.getElementById(
+			"year-selector"
+		) as HTMLInputElement;
+		const selectedYear = parseInt(selectedYearElement.value, 10);
+		if (!isNaN(selectedYear) && selectedYear !== currentYear) {
+			currentYear = selectedYear;
+			map.setPaintProperty(
+				"map",
+				"fill-color",
+				generateColorExpression()
+			);
+		}
+	};
 </script>

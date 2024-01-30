@@ -20,7 +20,12 @@
 		"@luma.gl/constants": "^8.5.21",
 		"@mapbox/mapbox-gl-geocoder": "^5.0.2",
 		"astro": "^4.2.4",
-		"mapbox-gl": "^3.1.2"
+		"chart.js": "^4.4.1",
+		"chartjs-plugin-annotation": "^3.0.1",
+		"chroma-js": "^2.4.2",
+		"d3": "^7.8.5",
+		"mapbox-gl": "^3.1.2",
+		"maplibre-gl": "^3.6.2"
 	},
 	"devDependencies": {
 		"tailwindcss": "^3.4.1"
