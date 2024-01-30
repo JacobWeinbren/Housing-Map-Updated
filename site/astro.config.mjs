@@ -5,6 +5,5 @@ import tailwind from "@astrojs/tailwind";
 // https://astro.build/config
 export default defineConfig({
 	integrations: [tailwind()],
-	site: "https://jacobweinbren.github.io",
-	base: "/Housing-Map-Updated",
+	site: "https://housing.kafkesque.blog",
 });
