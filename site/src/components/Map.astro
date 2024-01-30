@@ -54,13 +54,13 @@ import Chart from "./Chart.astro";
 				["to-number", ["get", `year_${currentYear}`], 0],
 				0,
 				"rgb(16, 48, 94)",
-				12.5,
+				5,
 				"rgb(136, 152, 175)",
-				25,
+				10,
 				"rgb(255, 255, 255)",
-				37.5,
+				15,
 				"rgb(210, 153, 139)",
-				50,
+				20,
 				"rgb(165, 50, 23)",
 			],
 		] as any;
@@ -92,12 +92,12 @@ import Chart from "./Chart.astro";
 				if (value) {
 					const positionX =
 						50 +
-						(((Math.min(Math.max(value, 0), 50) / 50) * 100) /
+						(((Math.min(Math.max(value, 0), 20) / 20) * 100) /
 							100) *
 							300;
 					d3.select("#value-indicator-line")
 						.transition()
-						.duration(300)
+						.duration(200)
 						.attr("x1", positionX)
 						.attr("x2", positionX);
 				}
