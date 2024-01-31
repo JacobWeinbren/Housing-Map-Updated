@@ -6,17 +6,18 @@
 -   **Ordnance Survey (OS) Building Map**: [Access Here](https://osdatahub.os.uk/downloads/open/OpenMapLocal)
 -   **ONS Postcode Registry**: [Access Here](https://geoportal.statistics.gov.uk/datasets/a2f8c9c5778a452bbf640d98c166657c/about)
 -   **ONS Median Gross Salary Data**: [Access Here](https://www.ons.gov.uk/aboutus/transparencyandgovernance/freedomofinformationfoi/averagesalarydatafromjanuary1970toaugust2022)
--   **ONS Output Areas (2021) EW BFE Data**: [Access Here](https://hub.arcgis.com/datasets/ons::output-areas-2021-ew-bfe/about)
+-   **MOSA Areas EW BFE Data**: [Access Here](<https://geoportal.statistics.gov.uk/search?collection=Dataset&tags=all(BDY_RGN%2CDEC_2021)>)
 
 ## Processing Workflow
 
 1.  **Data Merging**:
-    Run `combine.py` to integrate data from the above sources. Ensure all necessary data files are in the `data` directory before execution.
+    Run `combined_postcode_sales.py` to integrate data from income and postcode sales.
 
 2.  **Data Conversion and Spatial Analysis**:
     Execute `process_combined.py`. This script transforms CSV data into a GeoDataFrame, performs spatial joins, calculates average property prices, and exports the results to `housing_map.geojson`.
 
 3.  **Intersect Maps**:
+    Intersects `buildings.geojson` with `housing_map.geojson`
 
     ```bash
     python intersect.py
@@ -26,14 +27,14 @@
     Convert GeoJSON to MBTiles using Tippecanoe. Example commands:
 
     ```
-    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=9 --maximum-zoom=14 --simplification=20 -x subg -x g -x sg -x la23cd -x OA21CD -x fid_2 -x code -x feature_id -x fid_1 -x fid -x feature_code output/merged.geojson
+    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=9 --maximum-zoom=16 --simplification=20 -x fid -x id -x feature_code -x FID -x MSOA21CD -x MSOA21NM -x BNG_E -x BNG_N -x LONG -x LAT -x GlobalID output/merged.geojson
     ```
 
 5.  **Hosting**:
     Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
 
     ```
-    docker run -it -d -v /root/map-server/data:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
+    docker run -it -d -v /root/map-server:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
     ```
 
 6.  **Data Binning and Analysis**:
@@ -51,7 +52,7 @@ Place the following files in the `data` directory:
 -   `incomes.csv`: Contains `Year` and `Salary`.
 -   `postcode-data.csv`: Includes `pcds`, `lat`, and `long`.
 -   `housing-price-paid.csv`: Covers transaction price, date, and postcode.
--   `OA.geojson`: Spatial data for Output Areas.
+-   `MSOA.geojson`: Spatial data for Output Areas.
 -   `buildings.geojson`: Building data in WGS 84 format.
 
 ## Output Files
