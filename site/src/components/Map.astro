@@ -1,5 +1,16 @@
 ---
-import Chart from "./Chart.astro";
+import chroma from "chroma-js";
+
+function generateGradient() {
+	const colorScale = chroma
+		.scale(["#1d4ed8", "#06b6d4", "#ef4444"])
+		.mode("lch")
+		.domain([0, 20]);
+	const stops = Array.from({ length: 5 }, (_, i) => colorScale(i * 5).hex());
+	return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+const gradientStyle = generateGradient();
 ---
 
 <style>
@@ -21,15 +32,92 @@ import Chart from "./Chart.astro";
 
 <div id="map" class="w-screen h-screen"></div>
 <div id="geocoder" class="geocoder fixed top-4 left-4 z-10"></div>
-<Chart />
+
+<div
+	class="w-[500px] flex flex-col gap-2 absolute bottom-10 rounded-md z-10 bg-white py-4 px-6 left-1/2 transform -translate-x-1/2"
+>
+	<p class="text-lg font-semibold mb-2">
+		House Prices as a Multiple of Median Salary
+	</p>
+
+	<div>
+		<div class="w-full h-4 rounded" style={`background: ${gradientStyle};`}>
+		</div>
+		<div class="flex justify-between">
+			<span>0x</span>
+			<span>20x</span>
+		</div>
+	</div>
+	<div class="text-sm">
+		The median house in <span id="year" class="font-semibold">1995</span>
+		was worth <span id="times" class="font-semibold">5 times</span> the median
+		salary.
+	</div>
+	<div id="hover" class="text-sm">Hover over a house to see its value.</div>
+</div>
 
 <script>
 	import mapboxgl from "mapbox-gl";
+	import { MapboxLayer } from "@deck.gl/mapbox";
+	import { MVTLayer } from "@deck.gl/geo-layers";
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-	import * as d3 from "d3";
+	import { GeoJsonLayer } from "@deck.gl/layers";
+	import chroma from "chroma-js";
+	import GL from "@luma.gl/constants";
+
+	let medianData = {
+		"1995": 3.63,
+		"1996": 3.63,
+		"1997": 3.58,
+		"1998": 3.71,
+		"1999": 4.04,
+		"2000": 4.26,
+		"2001": 4.57,
+		"2002": 5.38,
+		"2003": 6.15,
+		"2004": 6.84,
+		"2005": 6.99,
+		"2006": 7.15,
+		"2007": 7.3,
+		"2008": 6.8,
+		"2009": 6.59,
+		"2010": 6.97,
+		"2011": 6.75,
+		"2012": 6.79,
+		"2013": 6.85,
+		"2014": 7.0,
+		"2015": 7.43,
+		"2016": 7.63,
+		"2017": 7.81,
+		"2018": 7.73,
+		"2019": 7.59,
+		"2020": 8.17,
+		"2021": 8.44,
+		"2022": 8.53,
+	};
+
+	declare global {
+		interface Window {
+			loadNewData: () => void;
+		}
+	}
 
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
 	let currentYear = 1995;
+
+	function updateMedianDisplay(year) {
+		const medianValue = medianData[year].toFixed(1);
+		const yearElement = document.getElementById("year");
+		if (yearElement) {
+			yearElement.textContent = `${year}`;
+			const timesElement = document.getElementById("times");
+			if (timesElement) {
+				timesElement.textContent = `${medianValue} times`;
+			}
+		}
+	}
+
+	updateMedianDisplay(currentYear);
 
 	const map = new mapboxgl.Map({
 		container: "map",
@@ -43,96 +131,82 @@ import Chart from "./Chart.astro";
 		projection: { name: "mercator" },
 	});
 
-	function generateColorExpression() {
-		return [
-			"case",
-			["!", ["has", `year_${currentYear}`]],
-			"rgba(0,0,0,0)",
-			[
-				"interpolate",
-				["linear"],
-				["to-number", ["get", `year_${currentYear}`], 0],
-				0,
-				"rgb(16, 48, 94)",
-				2.5,
-				"rgb(136, 152, 175)",
-				5,
-				"rgb(255, 255, 255)",
-				7.5,
-				"rgb(210, 153, 139)",
-				10,
-				"rgb(165, 50, 23)",
-			],
-		] as any;
+	function generateColorExpression(price) {
+		// Adjusted to map price (0-20) to a color
+		const colorScale = chroma
+			.scale(["#1d4ed8", "#06b6d4", "#ef4444"])
+			.mode("lch")
+			.domain([0, 20]);
+		return chroma(colorScale(price)).rgb();
 	}
 
 	map.on("load", () => {
-		map.addSource("merged", {
-			type: "vector",
-			tiles: ["https://map.kafkaesque.blog/data/merged/{z}/{x}/{y}.pbf"],
-		});
-		map.addLayer(
-			{
-				id: "map",
-				"source-layer": "merged",
-				paint: {
-					"fill-color": generateColorExpression(),
-					"fill-opacity": 0.7,
-				},
-				type: "fill",
-				source: "merged",
-			},
-			"road-label-simple"
-		);
-		map.addControl(new mapboxgl.NavigationControl());
+		const firstLabelLayerId = map
+			.getStyle()
+			.layers.find((layer) => layer.type === "symbol").id;
 
-		map.on("mousemove", "map", (e) => {
-			if (e.features.length > 0) {
-				const value = e.features[0].properties[`year_${currentYear}`];
-				if (value) {
-					const positionX =
-						50 +
-						(((Math.min(Math.max(value, 0), 20) / 20) * 100) /
-							100) *
-							300;
-					d3.select("#value-indicator-line")
-						.transition()
-						.duration(200)
-						.attr("x1", positionX)
-						.attr("x2", positionX);
-				}
+		function updateLayerData(year) {
+			const layerId = "map";
+			if (map.getLayer(layerId)) {
+				map.removeLayer(layerId);
 			}
-		});
 
-		(
-			document.querySelector(".mapboxgl-canvas-container") as HTMLElement
-		).style.cursor = "crosshair";
-	});
-
-	const geocoder = new MapboxGeocoder({
-		accessToken: MAPBOX_TOKEN,
-		mapboxgl: mapboxgl,
-	});
-	document.getElementById("geocoder").appendChild(geocoder.onAdd(map));
-
-	declare global {
-		interface Window {
-			loadNewData: () => void;
-		}
-	}
-
-	window.loadNewData = () => {
-		const selectedYearElement = document.getElementById(
-			"year-selector"
-		) as HTMLInputElement;
-		const selectedYear = parseInt(selectedYearElement.value, 10);
-		if (!isNaN(selectedYear) && selectedYear !== currentYear) {
-			currentYear = selectedYear;
-			map.setPaintProperty(
-				"map",
-				"fill-color",
-				generateColorExpression()
+			map.addLayer(
+				new MapboxLayer({
+					id: layerId,
+					type: MVTLayer,
+					data: `https://map.kafkaesque.blog/data/${year}/{z}/{x}/{y}.pbf`,
+					getLineColor: (feature) =>
+						generateColorExpression(feature.properties["price"]),
+					getFillColor: (feature) =>
+						generateColorExpression(feature.properties["price"]),
+					getPointRadius: 50,
+					opacity: 0.5,
+					lineWidthMinPixels: 1,
+					parameters: {
+						[GL.DEPTH_TEST]: false,
+						[GL.BLEND]: true,
+						[GL.BLEND_SRC_RGB]: GL.SRC_ALPHA,
+						[GL.BLEND_DST_RGB]: GL.ONE_MINUS_SRC_ALPHA,
+						[GL.BLEND_SRC_ALPHA]: GL.ONE,
+						[GL.BLEND_DST_ALPHA]: GL.ONE_MINUS_SRC_ALPHA,
+					},
+					pickable: true,
+					onHover: ({ object, x, y }) => {
+						const infoDiv = document.querySelector("#hover");
+						if (object) {
+							const price = object.properties["price"].toFixed(1);
+							infoDiv.innerHTML = `This house was worth <span id="times" class="font-semibold">${price} times</span> the median salary.`;
+						}
+					},
+					renderSubLayers: (props) => {
+						return new GeoJsonLayer(props);
+					},
+				}),
+				firstLabelLayerId
 			);
 		}
-	};
+
+		updateLayerData(currentYear);
+
+		const geocoder = new MapboxGeocoder({
+			accessToken: MAPBOX_TOKEN,
+			mapboxgl: mapboxgl,
+		});
+		document.getElementById("geocoder").appendChild(geocoder.onAdd(map));
+
+		map.addControl(new mapboxgl.NavigationControl());
+
+		window.loadNewData = () => {
+			const selectedYearElement = document.getElementById(
+				"year-selector"
+			) as HTMLInputElement;
+			const selectedYear = parseInt(selectedYearElement.value, 10);
+			if (!isNaN(selectedYear) && selectedYear !== currentYear) {
+				currentYear = selectedYear;
+				updateLayerData(currentYear);
+				updateMedianDisplay(currentYear);
+			}
+		};
+	});
 </script>

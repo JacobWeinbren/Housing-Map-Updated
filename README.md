@@ -14,30 +14,26 @@
     Run `combined_postcode_sales.py` to integrate data from income and postcode sales.
 
 2.  **Data Conversion and Spatial Analysis**:
-    Execute `process_combined.py`. This script transforms CSV data into a GeoDataFrame, performs spatial joins, calculates average property prices, and exports the results to `housing_map.geojson`.
+    Execute `process_combined.py`. This script transforms CSV data into a GeoDataFrame, performs spatial joins, calculates average property prices, and exports the results to `[year].geojson`.
 
-3.  **Intersect Maps**:
-    Intersects `buildings.geojson` with `housing_map.geojson`
-
-    ```bash
-    python intersect.py
-    ```
-
-4.  **MBTiles Generation**:
-    Convert GeoJSON to MBTiles using Tippecanoe. Example commands:
+3.  **MBTiles Generation**:
+    Convert GeoJSON to MBTiles using Tippecanoe.
 
     ```
-    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=9 --maximum-zoom=16 --simplification=20 -x fid -x id -x feature_code -x FID -x MSOA21CD -x MSOA21NM -x BNG_E -x BNG_N -x LONG -x LAT -x GlobalID output/merged.geojson
+    for file in output/years/*.geojson; do
+        output_file="output/years_processed/$(basename "$file" .geojson).mbtiles"
+        tippecanoe --output="$output_file" --generate-ids --force --no-feature-limit --no-tile-size-limit -r1 --minimum-zoom=0 --maximum-zoom=16 "$file"
+    done
     ```
 
-5.  **Hosting**:
+4.  **Hosting**:
     Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
 
     ```
     docker run -it -d -v /root/map-server:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
     ```
 
-6.  **Data Binning and Analysis**:
+5.  **Data Binning and Analysis**:
     Run `bins.py` to calculate median and percentile values for property prices. Outputs in `bins.json`.
 
 ## Key Assumptions
@@ -66,9 +62,11 @@ Place the following files in the `data` directory:
 To serve the application securely over HTTPS, configure Nginx as a reverse proxy:
 
 1. **Edit Nginx Configuration**:
-   Edit the configuration for your domain:
+   Update the Firewall. Edit the configuration for your domain:
 
     ```
+    sudo ufw allow 'Nginx Full'
+    sudo ufw allow 443/tcp
     sudo nano /etc/nginx/sites-available/map.kafkaesque.blog
     ```
 
