@@ -165,14 +165,9 @@ const gradientStyle = generateGradient();
 					lineWidthMinPixels: 1,
 					parameters: {
 						[GL.DEPTH_TEST]: false,
-						[GL.BLEND]: true,
-						[GL.BLEND_SRC_RGB]: GL.SRC_ALPHA,
-						[GL.BLEND_DST_RGB]: GL.ONE_MINUS_SRC_ALPHA,
-						[GL.BLEND_SRC_ALPHA]: GL.ONE,
-						[GL.BLEND_DST_ALPHA]: GL.ONE_MINUS_SRC_ALPHA,
 					},
 					pickable: true,
-					onHover: ({ object, x, y }) => {
+					onHover: ({ object }) => {
 						const infoDiv = document.querySelector("#hover");
 						if (object) {
 							const price = object.properties["price"].toFixed(1);
