@@ -1,7 +1,88 @@
 {
 	"data": {
-		"merged": {
-			"mbtiles": "merged.mbtiles"
+		"1995": {
+			"mbtiles": "1995.mbtiles"
+		},
+		"1996": {
+			"mbtiles": "1996.mbtiles"
+		},
+		"1997": {
+			"mbtiles": "1997.mbtiles"
+		},
+		"1998": {
+			"mbtiles": "1998.mbtiles"
+		},
+		"1999": {
+			"mbtiles": "1999.mbtiles"
+		},
+		"2000": {
+			"mbtiles": "2000.mbtiles"
+		},
+		"2001": {
+			"mbtiles": "2001.mbtiles"
+		},
+		"2002": {
+			"mbtiles": "2002.mbtiles"
+		},
+		"2003": {
+			"mbtiles": "2003.mbtiles"
+		},
+		"2004": {
+			"mbtiles": "2004.mbtiles"
+		},
+		"2005": {
+			"mbtiles": "2005.mbtiles"
+		},
+		"2006": {
+			"mbtiles": "2006.mbtiles"
+		},
+		"2007": {
+			"mbtiles": "2007.mbtiles"
+		},
+		"2008": {
+			"mbtiles": "2008.mbtiles"
+		},
+		"2009": {
+			"mbtiles": "2009.mbtiles"
+		},
+		"2010": {
+			"mbtiles": "2010.mbtiles"
+		},
+		"2011": {
+			"mbtiles": "2011.mbtiles"
+		},
+		"2012": {
+			"mbtiles": "2012.mbtiles"
+		},
+		"2013": {
+			"mbtiles": "2013.mbtiles"
+		},
+		"2014": {
+			"mbtiles": "2014.mbtiles"
+		},
+		"2015": {
+			"mbtiles": "2015.mbtiles"
+		},
+		"2016": {
+			"mbtiles": "2016.mbtiles"
+		},
+		"2017": {
+			"mbtiles": "2017.mbtiles"
+		},
+		"2018": {
+			"mbtiles": "2018.mbtiles"
+		},
+		"2019": {
+			"mbtiles": "2019.mbtiles"
+		},
+		"2020": {
+			"mbtiles": "2020.mbtiles"
+		},
+		"2021": {
+			"mbtiles": "2021.mbtiles"
+		},
+		"2022": {
+			"mbtiles": "2022.mbtiles"
 		}
 	}
 }
