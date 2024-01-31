@@ -36,9 +36,12 @@ const gradientStyle = generateGradient();
 <div
 	class="sm:w-[500px] w-full flex flex-col gap-2 absolute bottom-10 rounded-md z-10 bg-white py-4 px-6 left-1/2 transform -translate-x-1/2"
 >
-	<p class="text-lg font-semibold mb-2">
-		House Prices as a Multiple of Median Salary
-	</p>
+	<div>
+		<p class="text-lg font-semibold">
+			House Prices as a Multiple of Yearly Median Salary
+		</p>
+		<p class="text-md mb-2">England and Wales</p>
+	</div>
 
 	<div>
 		<div class="w-full h-4 rounded" style={`background: ${gradientStyle};`}>
@@ -48,12 +51,12 @@ const gradientStyle = generateGradient();
 			<span>20x</span>
 		</div>
 	</div>
-	<div class="text-sm">
+	<div>
 		The median house in <span id="year" class="font-semibold">1995</span>
-		was worth <span id="times" class="font-semibold">5 times</span> the median
-		salary.
+		cost <span id="times" class="font-semibold">5 times</span> the median salary.
+		The median salary was <span id="salary" class="font-semibold">£0</span>.
 	</div>
-	<div id="hover" class="text-sm">Hover over a house to see its value.</div>
+	<div id="hover">Hover over a house to see its cost.</div>
 </div>
 
 <script>
@@ -65,7 +68,7 @@ const gradientStyle = generateGradient();
 	import chroma from "chroma-js";
 	import GL from "@luma.gl/constants";
 
-	let medianData = {
+	const medianPriceData = {
 		"1995": 3.63,
 		"1996": 3.63,
 		"1997": 3.58,
@@ -96,6 +99,37 @@ const gradientStyle = generateGradient();
 		"2022": 8.53,
 	};
 
+	let medianSalaryData = {
+		"1995": 15147.4,
+		"1996": 15711.0,
+		"1997": 16775.4,
+		"1998": 17521.6,
+		"1999": 18069.4,
+		"2000": 18784.3,
+		"2001": 19692.2,
+		"2002": 20464.4,
+		"2003": 21142.8,
+		"2004": 21930.7,
+		"2005": 22525.5,
+		"2006": 23209.0,
+		"2007": 23965.6,
+		"2008": 24998.8,
+		"2009": 25562.3,
+		"2010": 26104.9,
+		"2011": 26089.3,
+		"2012": 26501.5,
+		"2013": 27007.6,
+		"2014": 27153.7,
+		"2015": 27576.4,
+		"2016": 28181.6,
+		"2017": 28802.6,
+		"2018": 29752.2,
+		"2019": 30628.8,
+		"2020": 30618.4,
+		"2021": 31975.0,
+		"2022": 32522.9,
+	};
+
 	declare global {
 		interface Window {
 			loadNewData: () => void;
@@ -106,13 +140,24 @@ const gradientStyle = generateGradient();
 	let currentYear = 1995;
 
 	function updateMedianDisplay(year) {
-		const medianValue = medianData[year].toFixed(1);
+		const medianValue = medianPriceData[year].toFixed(1);
+		const medianSalary = medianSalaryData[year];
+		const formattedSalary = new Intl.NumberFormat("en-GB", {
+			style: "currency",
+			currency: "GBP",
+			maximumSignificantDigits: 3,
+		}).format(medianSalary);
+
 		const yearElement = document.getElementById("year");
 		if (yearElement) {
 			yearElement.textContent = `${year}`;
 			const timesElement = document.getElementById("times");
 			if (timesElement) {
 				timesElement.textContent = `${medianValue} times`;
+			}
+			const salaryElement = document.getElementById("salary");
+			if (salaryElement) {
+				salaryElement.textContent = formattedSalary;
 			}
 		}
 	}
@@ -171,7 +216,7 @@ const gradientStyle = generateGradient();
 						const infoDiv = document.querySelector("#hover");
 						if (object) {
 							const price = object.properties["price"].toFixed(1);
-							infoDiv.innerHTML = `This house was worth <span id="times" class="font-semibold">${price} times</span> the median salary.`;
+							infoDiv.innerHTML = `This house cost <span id="times" class="font-semibold">${price} times</span> the median salary.`;
 						}
 					},
 					renderSubLayers: (props) => {
