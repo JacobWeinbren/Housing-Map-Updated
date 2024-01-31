@@ -22,7 +22,7 @@
     ```
     for file in output/years/*.geojson; do
         output_file="output/years_processed/$(basename "$file" .geojson).mbtiles"
-        tippecanoe --output="$output_file" --generate-ids --force --no-feature-limit --no-tile-size-limit -r1 --minimum-zoom=0 --maximum-zoom=16 "$file"
+        tippecanoe --output="$output_file" --generate-ids --force --no-feature-limit --no-tile-size-limit -r1 --minimum-zoom=0 --maximum-zoom=17 "$file"
     done
     ```
 

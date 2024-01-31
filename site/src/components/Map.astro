@@ -38,7 +38,7 @@ const gradientStyle = generateGradient();
 >
 	<div>
 		<p class="text-lg font-semibold">
-			House Prices as a Multiple of Yearly Median Salary
+			House Prices as a Multiple of Median Salary
 		</p>
 		<p class="text-md mb-2">England and Wales</p>
 	</div>
@@ -85,7 +85,7 @@ const gradientStyle = generateGradient();
 		"2008": 6.8,
 		"2009": 6.59,
 		"2010": 6.97,
-		"2011": 6.75,
+		"2011": 6.71,
 		"2012": 6.79,
 		"2013": 6.85,
 		"2014": 7.0,
@@ -116,7 +116,7 @@ const gradientStyle = generateGradient();
 		"2008": 24998.8,
 		"2009": 25562.3,
 		"2010": 26104.9,
-		"2011": 26089.3,
+		"2011": 26225.0,
 		"2012": 26501.5,
 		"2013": 27007.6,
 		"2014": 27153.7,
@@ -169,7 +169,7 @@ const gradientStyle = generateGradient();
 		center: [-0.2, 51.5],
 		zoom: 9,
 		minZoom: 9,
-		maxZoom: 16,
+		maxZoom: 17,
 		style: "mapbox://styles/mapbox/dark-v11",
 		accessToken: MAPBOX_TOKEN,
 		antialias: true,
@@ -177,7 +177,6 @@ const gradientStyle = generateGradient();
 	});
 
 	function generateColorExpression(price) {
-		// Adjusted to map price (0-20) to a color
 		const colorScale = chroma
 			.scale(["#1d4ed8", "#06b6d4", "#ef4444"])
 			.mode("lch")
@@ -205,7 +204,7 @@ const gradientStyle = generateGradient();
 						generateColorExpression(feature.properties["price"]),
 					getFillColor: (feature) =>
 						generateColorExpression(feature.properties["price"]),
-					getPointRadius: 50,
+					getPointRadius: 30,
 					opacity: 0.3,
 					lineWidthMinPixels: 1,
 					parameters: {
