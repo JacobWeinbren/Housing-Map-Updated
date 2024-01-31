@@ -7,7 +7,7 @@ const optionsHtml = years
 	.map((year) => `<option value="${year}">House Prices ${year}</option>`)
 	.join("");
 
-const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-2 rounded fixed bottom-[calc(3rem+210px)] left-1/2 transform -translate-x-1/2 z-10" onchange="window.loadNewData()">>${optionsHtml}</select>`;
+const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-2 rounded fixed bottom-[calc(3rem+180px)] left-1/2 transform -translate-x-1/2 z-10" onchange="window.loadNewData()">>${optionsHtml}</select>`;
 ---
 
 <html lang="en">
