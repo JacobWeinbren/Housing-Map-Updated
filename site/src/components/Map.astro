@@ -73,7 +73,7 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		cost <span id="times" class="font-semibold">5 times</span> the median salary.
 		The median salary was <span id="salary" class="font-semibold">£0</span>.
 	</div>
-	<div id="hover">Hover over a house to see its cost.</div>
+	<div id="hover">Hover over a point to see its value.</div>
 
 	<button
 		id="pricesMapButton"
@@ -314,6 +314,8 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 				document.getElementById("year-selector").style.display =
 					"block";
 				document.getElementById("meta").style.display = "block";
+				document.getElementById("hover").textContent =
+					"Hover over a point to see its value.";
 				updateLayerData(currentYear);
 			});
 
@@ -327,6 +329,8 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 				document.getElementById("max").textContent = "300%";
 				document.getElementById("year-selector").style.display = "none";
 				document.getElementById("meta").style.display = "none";
+				document.getElementById("hover").textContent =
+					"Hover over a area to see its value.";
 				updateLayerData(currentYear);
 			});
 
