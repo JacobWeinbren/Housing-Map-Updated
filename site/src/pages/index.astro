@@ -1,13 +1,5 @@
 ---
 import Map from "../components/Map.astro";
-
-const years = Array.from({ length: 2022 - 1995 + 1 }, (_, i) => 1995 + i);
-
-const optionsHtml = years
-	.map((year) => `<option value="${year}">House Prices ${year}</option>`)
-	.join("");
-
-const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-2 rounded fixed bottom-[calc(3rem+240px)] left-1/2 transform -translate-x-1/2 z-10" onchange="window.loadNewData()">>${optionsHtml}</select>`;
 ---
 
 <html lang="en">
@@ -30,7 +22,6 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		<title>Housing Prices Map</title>
 	</head>
 	<body>
-		<Fragment set:html={dropdownHtml} />
 		<Map />
 	</body>
 </html>
