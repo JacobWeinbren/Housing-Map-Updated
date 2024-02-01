@@ -28,15 +28,17 @@ print("Calculating and mapping average prices...")
 avg_prices = (
     joined.groupby(["index_right", "year"])["price_normalized"].median().reset_index()
 )
-avg_prices.columns = ["FID", "year", "avg_price"]
+avg_prices.columns = ["fid", "year", "avg_price"]
 
+print(gdf_areas.head())
+print(avg_prices.head())
 # Update GeoJSON properties
 print("Updating GeoJSON properties...")
 for feature in tqdm(
     gdf_areas.__geo_interface__["features"], desc="Updating Properties"
 ):
-    fid = feature["properties"]["FID"]
-    feature_years_prices = avg_prices[avg_prices["FID"] == fid]
+    fid = feature["properties"]["fid"]
+    feature_years_prices = avg_prices[avg_prices["fid"] == fid]
     for _, row in feature_years_prices.iterrows():
         feature["properties"][f"year_{int(row['year'])}"] = round(row["avg_price"], 2)
 
