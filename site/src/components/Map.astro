@@ -68,7 +68,7 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 
 	<Fragment set:html={dropdownHtml} />
 
-	<div>
+	<div id="meta">
 		The median house in <span id="year" class="font-semibold">1995</span>
 		cost <span id="times" class="font-semibold">5 times</span> the median salary.
 		The median salary was <span id="salary" class="font-semibold">£0</span>.
@@ -313,6 +313,7 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 				document.getElementById("max").textContent = "20x";
 				document.getElementById("year-selector").style.display =
 					"block";
+				document.getElementById("meta").style.display = "block";
 				updateLayerData(currentYear);
 			});
 
@@ -325,6 +326,7 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 				document.getElementById("min").textContent = "0%";
 				document.getElementById("max").textContent = "300%";
 				document.getElementById("year-selector").style.display = "none";
+				document.getElementById("meta").style.display = "none";
 				updateLayerData(currentYear);
 			});
 
