@@ -28,19 +28,18 @@ print("Calculating and mapping average prices...")
 avg_prices = (
     joined.groupby(["index_right", "year"])["price_normalized"].median().reset_index()
 )
-avg_prices.columns = ["fid", "year", "avg_price"]
+avg_prices.columns = ["FID", "year", "avg_price"]
 
-print(gdf_areas.head())
-print(avg_prices.head())
-# Update GeoJSON properties
-print("Updating GeoJSON properties...")
+# Iterate over features and update properties
 for feature in tqdm(
-    gdf_areas.__geo_interface__["features"], desc="Updating Properties"
+    gdf_areas.iterrows(), desc="Updating Properties", total=len(gdf_areas)
 ):
-    fid = feature["properties"]["fid"]
-    feature_years_prices = avg_prices[avg_prices["fid"] == fid]
+    fid = feature[1]["FID"]
+    feature_years_prices = avg_prices[avg_prices["FID"] == fid]
     for _, row in feature_years_prices.iterrows():
-        feature["properties"][f"year_{int(row['year'])}"] = round(row["avg_price"], 2)
+        gdf_areas.loc[gdf_areas["FID"] == fid, f"year_{int(row['year'])}"] = round(
+            row["avg_price"], 2
+        )
 
 # Save the updated GeoDataFrame to a GeoJSON file
 output_file_path = "output/housing_map.geojson"

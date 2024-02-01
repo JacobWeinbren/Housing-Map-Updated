@@ -13,7 +13,7 @@ def intersect_geojson(file1, file2, output_file):
     intersection = gpd.overlay(gdf1, gdf2, how="intersection")
 
     # Save the result to a new GeoJSON file
-    intersection.to_file(output_file, driver="GeoJSON")
+    intersection.to_file(output_file, driver="GeoJSON", decimal=6)
 
 
 if __name__ == "__main__":
