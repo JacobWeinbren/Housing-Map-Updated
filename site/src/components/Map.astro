@@ -3,7 +3,13 @@ import chroma from "chroma-js";
 
 function generateGradient() {
 	const colorScale = chroma
-		.scale(["#1d4ed8", "#06b6d4", "#ef4444"])
+		.scale([
+			"#2b83baff",
+			"#abdda4ff",
+			"#ffffbfff",
+			"#fdae61ff",
+			"#d7191cff",
+		])
 		.mode("lch")
 		.domain([0, 20]);
 	const stops = Array.from({ length: 5 }, (_, i) => colorScale(i * 5).hex());
@@ -45,7 +51,7 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 	class="sm:w-[500px] text-sm w-full flex flex-col gap-2 absolute bottom-10 rounded-md z-10 bg-white py-4 px-6 left-1/2 transform -translate-x-1/2"
 >
 	<div>
-		<p class="text-md font-semibold">
+		<p class="text-md font-semibold" id="title">
 			House Prices as a Multiple of Median Salary
 		</p>
 		<p class="mb-2">England and Wales</p>
@@ -55,8 +61,8 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		<div class="w-full h-4 rounded" style={`background: ${gradientStyle};`}>
 		</div>
 		<div class="flex justify-between">
-			<span>0x</span>
-			<span>20x</span>
+			<span id="min">0x</span>
+			<span id="max">20x</span>
 		</div>
 	</div>
 
@@ -68,6 +74,19 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		The median salary was <span id="salary" class="font-semibold">£0</span>.
 	</div>
 	<div id="hover">Hover over a house to see its cost.</div>
+
+	<button
+		id="pricesMapButton"
+		class="border p-1 rounded hover:bg-gray-100 active:bg-gray-300"
+	>
+		Prices Map
+	</button>
+	<button
+		id="changeMapButton"
+		class="border p-1 rounded hover:bg-gray-100 active:bg-gray-300"
+	>
+		Price Change Map
+	</button>
 </div>
 
 <script>
@@ -75,8 +94,8 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 	import { MapboxLayer } from "@deck.gl/mapbox";
 	import { MVTLayer } from "@deck.gl/geo-layers";
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-	import { GeoJsonLayer } from "@deck.gl/layers";
 	import chroma from "chroma-js";
+	import { GeoJsonLayer } from "@deck.gl/layers";
 
 	const medianPriceData = {
 		"1995": 3.63,
@@ -148,6 +167,7 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
 	let currentYear = 1995;
+	let mapMode = "prices";
 
 	function updateMedianDisplay(year) {
 		const medianValue = medianPriceData[year].toFixed(1);
@@ -172,6 +192,63 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		}
 	}
 
+	function handleHover({ object }) {
+		const infoDiv = document.querySelector("#hover");
+		if (!object) {
+			return;
+		}
+
+		let hoverText = "";
+		if (mapMode === "prices") {
+			const price = object.properties["price"].toFixed(1);
+			hoverText = `This house cost <span id="times" class="font-semibold">${price} times</span> the median salary.`;
+		} else if (mapMode === "changes") {
+			const priceChange = (
+				(object.properties["year_2022"] /
+					object.properties["year_1995"] -
+					1) *
+				100
+			).toFixed(0);
+			hoverText = `This area's houses are worth <span id="times" class="font-semibold">${priceChange}%</span> more in 2022 than 1995, relative to the median salary.`;
+		}
+
+		infoDiv.innerHTML = hoverText;
+	}
+
+	// Adjusted generateColorExpression to account for different modes
+	function generateColorExpression(feature) {
+		if (mapMode == "prices") {
+			return chroma
+				.scale([
+					"#2b83baff",
+					"#abdda4ff",
+					"#ffffbfff",
+					"#fdae61ff",
+					"#d7191cff",
+				])
+				.mode("lch")
+				.domain([0, 20])(feature.properties["price"])
+				.rgb();
+		} else {
+			const change =
+				(feature.properties["year_2022"] /
+					feature.properties["year_1995"] -
+					1) *
+				100;
+			return chroma
+				.scale([
+					"#2b83baff",
+					"#abdda4ff",
+					"#ffffbfff",
+					"#fdae61ff",
+					"#d7191cff",
+				])
+				.mode("lch")
+				.domain([0, 300])(change)
+				.rgb();
+		}
+	}
+
 	updateMedianDisplay(currentYear);
 
 	const map = new mapboxgl.Map({
@@ -180,19 +257,11 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		zoom: 9,
 		minZoom: 9,
 		maxZoom: 17,
-		style: "mapbox://styles/mapbox/dark-v11?optimize=true",
+		style: "mapbox://styles/mapbox/light-v11?optimize=true",
 		accessToken: MAPBOX_TOKEN,
 		antialias: true,
 		projection: { name: "mercator" },
 	});
-
-	function generateColorExpression(price) {
-		const colorScale = chroma
-			.scale(["#1d4ed8", "#06b6d4", "#ef4444"])
-			.mode("lch")
-			.domain([0, 20]);
-		return chroma(colorScale(price)).rgb();
-	}
 
 	map.on("load", () => {
 		const firstLabelLayerId = map
@@ -205,33 +274,59 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 				map.removeLayer(layerId);
 			}
 
-			map.addLayer(
-				new MapboxLayer({
-					id: layerId,
-					type: MVTLayer,
-					data: `https://map.kafkaesque.blog/data/${year}/{z}/{x}/{y}.pbf`,
-					getLineColor: (feature) =>
-						generateColorExpression(feature.properties["price"]),
-					getFillColor: (feature) =>
-						generateColorExpression(feature.properties["price"]),
-					getPointRadius: 30,
-					opacity: 0.3,
-					lineWidthMinPixels: 1,
-					pickable: true,
-					onHover: ({ object }) => {
-						const infoDiv = document.querySelector("#hover");
-						if (object) {
-							const price = object.properties["price"].toFixed(1);
-							infoDiv.innerHTML = `This house cost <span id="times" class="font-semibold">${price} times</span> the median salary.`;
-						}
-					},
-					renderSubLayers: (props) => {
-						return new GeoJsonLayer(props);
-					},
-				}),
-				firstLabelLayerId
-			);
+			const layerDataUrl =
+				mapMode == "prices"
+					? `https://map.kafkaesque.blog/data/${year}/{z}/{x}/{y}.pbf`
+					: `https://map.kafkaesque.blog/data/housing_map/{z}/{x}/{y}.pbf`;
+
+			const layer = new MapboxLayer({
+				id: layerId,
+				type: MVTLayer,
+				data: layerDataUrl,
+				getLineColor: (feature) => generateColorExpression(feature),
+				getFillColor: (feature) => generateColorExpression(feature),
+				getPointRadius: 30,
+				opacity: 0.3,
+				lineWidthMinPixels: 1,
+				pickable: true,
+				renderSubLayers: (props) => {
+					return new GeoJsonLayer(props);
+				},
+				onHover: handleHover,
+				updateTriggers: {
+					getLineColor: [year, mapMode],
+					getFillColor: [year, mapMode],
+				},
+			});
+
+			map.addLayer(layer, firstLabelLayerId);
 		}
+
+		// Add event listeners for the buttons
+		document
+			.getElementById("pricesMapButton")
+			.addEventListener("click", () => {
+				mapMode = "prices";
+				document.getElementById("title").textContent =
+					"House Prices as a Multiple of Median Salary";
+				document.getElementById("min").textContent = "0x";
+				document.getElementById("max").textContent = "20x";
+				document.getElementById("year-selector").style.display =
+					"block";
+				updateLayerData(currentYear);
+			});
+
+		document
+			.getElementById("changeMapButton")
+			.addEventListener("click", () => {
+				mapMode = "changes";
+				document.getElementById("title").textContent =
+					"Percentage Change in House Prices, Relative to Median Salary";
+				document.getElementById("min").textContent = "0%";
+				document.getElementById("max").textContent = "300%";
+				document.getElementById("year-selector").style.display = "none";
+				updateLayerData(currentYear);
+			});
 
 		updateLayerData(currentYear);
 

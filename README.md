@@ -27,7 +27,7 @@
     ```
 
     ```
-    tippecanoe --output=output/merged.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --minimum-zoom=0 --minimum-zoom=9 --maximum-zoom=16 --simplification=30 -x fid -x id -x feature_code -x FID -x MSOA21CD -x MSOA21NM -x BNG_E -x BNG_N -x LONG -x LAT -x GlobalID output/merged.geojson
+    tippecanoe --output=output/housing_map.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=9 --maximum-zoom=16 --simplification=30 -x fid -x id -x feature_code -x FID -x MSOA21CD -x MSOA21NM -x BNG_E -x BNG_N -x LONG -x LAT -x GlobalID -r1 output/housing_map.geojson
     ```
 
 4.  **Hosting**:
