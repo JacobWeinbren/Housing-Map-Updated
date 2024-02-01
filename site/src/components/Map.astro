@@ -18,7 +18,7 @@ const optionsHtml = years
 	.map((year) => `<option value="${year}">House Prices ${year}</option>`)
 	.join("");
 
-const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-2 rounded border" onchange="window.loadNewData()">>${optionsHtml}</select>`;
+const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-1 rounded border" onchange="window.loadNewData()">>${optionsHtml}</select>`;
 ---
 
 <style>
@@ -42,13 +42,13 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 <div id="geocoder" class="geocoder fixed top-4 left-4 z-10"></div>
 
 <div
-	class="sm:w-[500px] w-full flex flex-col gap-4 absolute bottom-10 rounded-md z-10 bg-white py-4 px-6 left-1/2 transform -translate-x-1/2"
+	class="sm:w-[500px] text-sm w-full flex flex-col gap-2 absolute bottom-10 rounded-md z-10 bg-white py-4 px-6 left-1/2 transform -translate-x-1/2"
 >
 	<div>
-		<p class="text-lg font-semibold">
+		<p class="text-md font-semibold">
 			House Prices as a Multiple of Median Salary
 		</p>
-		<p class="text-md mb-2">England and Wales</p>
+		<p class="mb-2">England and Wales</p>
 	</div>
 
 	<div>
@@ -77,7 +77,6 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 	import { GeoJsonLayer } from "@deck.gl/layers";
 	import chroma from "chroma-js";
-	import GL from "@luma.gl/constants";
 
 	const medianPriceData = {
 		"1995": 3.63,
@@ -218,9 +217,6 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 					getPointRadius: 30,
 					opacity: 0.3,
 					lineWidthMinPixels: 1,
-					parameters: {
-						[GL.DEPTH_TEST]: false,
-					},
 					pickable: true,
 					onHover: ({ object }) => {
 						const infoDiv = document.querySelector("#hover");
