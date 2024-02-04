@@ -1,5 +1,5 @@
 {
-	"name": "",
+	"name": "housing-map",
 	"type": "module",
 	"version": "0.0.1",
 	"scripts": {
@@ -25,9 +25,7 @@
 		"chroma-js": "^2.4.2",
 		"d3": "^7.8.5",
 		"mapbox-gl": "^3.1.2",
-		"maplibre-gl": "^3.6.2"
-	},
-	"devDependencies": {
+		"maplibre-gl": "^3.6.2",
 		"tailwindcss": "^3.4.1"
 	}
 }
