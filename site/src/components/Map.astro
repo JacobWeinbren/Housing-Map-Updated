@@ -27,23 +27,6 @@ const optionsHtml = years
 const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-1 rounded border" onchange="window.loadNewData()">>${optionsHtml}</select>`;
 ---
 
-<style>
-	#gradient-bar {
-		background: linear-gradient(
-			to right,
-			rgb(16, 48, 94),
-			rgb(136, 152, 175),
-			rgb(255, 255, 255),
-			rgb(210, 153, 139),
-			rgb(165, 50, 23)
-		);
-	}
-
-	#value-indicator-line {
-		transition: left 300ms ease-in-out;
-	}
-</style>
-
 <div id="map" class="w-screen h-screen"></div>
 <div id="geocoder" class="geocoder fixed top-4 left-4 z-10"></div>
 
