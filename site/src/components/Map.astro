@@ -198,37 +198,38 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		infoDiv.innerHTML = hoverText;
 	}
 
-	// Adjusted generateColorExpression to account for different modes
+	const priceScale = chroma
+		.scale([
+			"#2b83baff",
+			"#abdda4ff",
+			"#ffffbfff",
+			"#fdae61ff",
+			"#d7191cff",
+		])
+		.mode("lch")
+		.domain([0, 20]);
+
+	const changeScale = chroma
+		.scale([
+			"#2b83baff",
+			"#abdda4ff",
+			"#ffffbfff",
+			"#fdae61ff",
+			"#d7191cff",
+		])
+		.mode("lch")
+		.domain([0, 300]);
+
 	function generateColorExpression(feature) {
 		if (mapMode == "prices") {
-			return chroma
-				.scale([
-					"#2b83baff",
-					"#abdda4ff",
-					"#ffffbfff",
-					"#fdae61ff",
-					"#d7191cff",
-				])
-				.mode("lch")
-				.domain([0, 20])(feature.properties["price"])
-				.rgb();
+			return priceScale(feature.properties["price"]).rgb();
 		} else {
 			const change =
 				(feature.properties["year_2022"] /
 					feature.properties["year_1995"] -
 					1) *
 				100;
-			return chroma
-				.scale([
-					"#2b83baff",
-					"#abdda4ff",
-					"#ffffbfff",
-					"#fdae61ff",
-					"#d7191cff",
-				])
-				.mode("lch")
-				.domain([0, 300])(change)
-				.rgb();
+			return changeScale(change).rgb();
 		}
 	}
 
