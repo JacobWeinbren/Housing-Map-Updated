@@ -60,7 +60,6 @@ const optionsHtml = years
 </div>
 
 <script>
-	import chroma from "chroma-js";
 	import mapboxgl from "mapbox-gl";
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
@@ -273,6 +272,7 @@ const optionsHtml = years
 				layout: {
 					visibility: "visible",
 				},
+				// @ts-ignore
 				paint: {
 					[mapMode === "prices" ? "circle-color" : "fill-color"]:
 						getColorExpression(mapMode),
