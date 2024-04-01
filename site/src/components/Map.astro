@@ -1,30 +1,11 @@
 ---
-import chroma from "chroma-js";
+const COLOR_SCALE = ["#2b83ba", "#abdda4", "#ffffbf", "#fdae61", "#d7191c"];
 
-function generateGradient() {
-	const colorScale = chroma
-		.scale([
-			"#2b83baff",
-			"#abdda4ff",
-			"#ffffbfff",
-			"#fdae61ff",
-			"#d7191cff",
-		])
-		.mode("lch")
-		.domain([0, 20]);
-	const stops = Array.from({ length: 5 }, (_, i) => colorScale(i * 5).hex());
-	return `linear-gradient(to right, ${stops.join(", ")})`;
-}
-
-const gradientStyle = generateGradient();
-
-const years = Array.from({ length: 2022 - 1995 + 1 }, (_, i) => 1995 + i);
+const years = Array.from({ length: 28 }, (_, i) => 1995 + i);
 
 const optionsHtml = years
 	.map((year) => `<option value="${year}">House Prices ${year}</option>`)
 	.join("");
-
-const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</label><select id="year-selector" class="p-1 rounded border" onchange="window.loadNewData()">>${optionsHtml}</select>`;
 ---
 
 <div id="map" class="w-screen h-screen"></div>
@@ -41,7 +22,10 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 	</div>
 
 	<div>
-		<div class="w-full h-4 rounded" style={`background: ${gradientStyle};`}>
+		<div
+			class="w-full h-4 rounded"
+			style={`background: linear-gradient(to right, ${COLOR_SCALE.join(", ")});`}
+		>
 		</div>
 		<div class="flex justify-between">
 			<span id="min">0x</span>
@@ -49,12 +33,15 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		</div>
 	</div>
 
-	<Fragment set:html={dropdownHtml} />
+	<label for="year-selector" class="sr-only">Select Year</label>
+	<select id="year-selector" class="p-1 rounded border">
+		<Fragment set:html={optionsHtml} />
+	</select>
 
 	<div id="meta">
-		The median house in <span id="year" class="font-semibold">1995</span>
-		cost <span id="times" class="font-semibold">5 times</span> the median salary.
-		The median salary was <span id="salary" class="font-semibold">£0</span>.
+		The median house in <span id="year" class="font-semibold"></span>
+		cost <span id="times" class="font-semibold"></span> the median salary. The
+		median salary was <span id="salary" class="font-semibold"></span>.
 	</div>
 	<div id="hover">Hover over a point to see its value.</div>
 
@@ -73,12 +60,10 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 </div>
 
 <script>
-	import mapboxgl from "mapbox-gl";
-	import { MapboxLayer } from "@deck.gl/mapbox";
-	import { MVTLayer } from "@deck.gl/geo-layers";
-	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 	import chroma from "chroma-js";
-	import { GeoJsonLayer } from "@deck.gl/layers";
+	import mapboxgl from "mapbox-gl";
+	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
 
 	const medianPriceData = {
 		"1995": 3.63,
@@ -142,98 +127,48 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 		"2022": 32522.9,
 	};
 
-	declare global {
-		interface Window {
-			loadNewData: () => void;
-		}
+	const COLOR_SCALE = ["#2b83ba", "#abdda4", "#ffffbf", "#fdae61", "#d7191c"];
+
+	function getColorExpression(mapMode) {
+		const steps =
+			mapMode === "prices" ? [5, 10, 15, 20] : [0, 75, 150, 225, 300];
+
+		return [
+			"case",
+			["boolean", ["feature-state", "hover"], false],
+			"rgba(0, 0, 0, 0.5)",
+			[
+				"step",
+				mapMode === "prices"
+					? ["get", "price"]
+					: [
+							"-",
+							[
+								"*",
+								100,
+								[
+									"/",
+									["get", "year_2022"],
+									["get", "year_1995"],
+								],
+							],
+							100,
+						],
+				COLOR_SCALE[0],
+				steps[0],
+				COLOR_SCALE[1],
+				steps[1],
+				COLOR_SCALE[2],
+				steps[2],
+				COLOR_SCALE[3],
+				steps[3],
+				COLOR_SCALE[4],
+			],
+		];
 	}
 
-	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
 	let currentYear = 1995;
 	let mapMode = "prices";
-
-	function updateMedianDisplay(year) {
-		const medianValue = medianPriceData[year].toFixed(1);
-		const medianSalary = medianSalaryData[year];
-		const formattedSalary = new Intl.NumberFormat("en-GB", {
-			style: "currency",
-			currency: "GBP",
-			maximumSignificantDigits: 3,
-		}).format(medianSalary);
-
-		const yearElement = document.getElementById("year");
-		if (yearElement) {
-			yearElement.textContent = `${year}`;
-			const timesElement = document.getElementById("times");
-			if (timesElement) {
-				timesElement.textContent = `${medianValue} times`;
-			}
-			const salaryElement = document.getElementById("salary");
-			if (salaryElement) {
-				salaryElement.textContent = formattedSalary;
-			}
-		}
-	}
-
-	function handleHover({ object }) {
-		const infoDiv = document.querySelector("#hover");
-		if (!object) {
-			return;
-		}
-
-		let hoverText = "";
-		if (mapMode === "prices") {
-			const price = object.properties["price"].toFixed(1);
-			hoverText = `This house cost <span id="times" class="font-semibold">${price} times</span> the median salary.`;
-		} else if (mapMode === "changes") {
-			const priceChange = (
-				(object.properties["year_2022"] /
-					object.properties["year_1995"] -
-					1) *
-				100
-			).toFixed(0);
-			hoverText = `This area's houses are worth <span id="times" class="font-semibold">${priceChange}%</span> more in 2022 than 1995, relative to the median salary.`;
-		}
-
-		infoDiv.innerHTML = hoverText;
-	}
-
-	const priceScale = chroma
-		.scale([
-			"#2b83baff",
-			"#abdda4ff",
-			"#ffffbfff",
-			"#fdae61ff",
-			"#d7191cff",
-		])
-		.mode("lch")
-		.domain([0, 20]);
-
-	const changeScale = chroma
-		.scale([
-			"#2b83baff",
-			"#abdda4ff",
-			"#ffffbfff",
-			"#fdae61ff",
-			"#d7191cff",
-		])
-		.mode("lch")
-		.domain([0, 300]);
-
-	function generateColorExpression(feature) {
-		if (mapMode == "prices") {
-			return priceScale(feature.properties["price"]).rgb();
-		} else {
-			const change =
-				(feature.properties["year_2022"] /
-					feature.properties["year_1995"] -
-					1) *
-				100;
-			return changeScale(change).rgb();
-		}
-	}
-
-	updateMedianDisplay(currentYear);
 
 	const map = new mapboxgl.Map({
 		container: "map",
@@ -248,76 +183,6 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 	});
 
 	map.on("load", () => {
-		const firstLabelLayerId = map
-			.getStyle()
-			.layers.find((layer) => layer.type === "symbol").id;
-
-		function updateLayerData(year) {
-			const layerId = "map";
-			if (map.getLayer(layerId)) {
-				map.removeLayer(layerId);
-			}
-
-			const layerDataUrl =
-				mapMode == "prices"
-					? `https://map.kafkaesque.blog/data/${year}/{z}/{x}/{y}.pbf`
-					: `https://map.kafkaesque.blog/data/housing_map/{z}/{x}/{y}.pbf`;
-
-			const layer = new MapboxLayer({
-				id: layerId,
-				type: MVTLayer,
-				data: layerDataUrl,
-				getLineColor: (feature) => generateColorExpression(feature),
-				getFillColor: (feature) => generateColorExpression(feature),
-				getPointRadius: 30,
-				opacity: 0.3,
-				lineWidthMinPixels: 1,
-				pickable: true,
-				renderSubLayers: (props) => {
-					return new GeoJsonLayer(props);
-				},
-				onHover: handleHover,
-				updateTriggers: {
-					getLineColor: [year, mapMode],
-					getFillColor: [year, mapMode],
-				},
-			});
-
-			map.addLayer(layer, firstLabelLayerId);
-		}
-
-		// Add event listeners for the buttons
-		document
-			.getElementById("pricesMapButton")
-			.addEventListener("click", () => {
-				mapMode = "prices";
-				document.getElementById("title").textContent =
-					"House Prices as a Multiple of Median Salary";
-				document.getElementById("min").textContent = "0x";
-				document.getElementById("max").textContent = "20x";
-				document.getElementById("year-selector").style.display =
-					"block";
-				document.getElementById("meta").style.display = "block";
-				document.getElementById("hover").textContent =
-					"Hover over a point to see its value.";
-				updateLayerData(currentYear);
-			});
-
-		document
-			.getElementById("changeMapButton")
-			.addEventListener("click", () => {
-				mapMode = "changes";
-				document.getElementById("title").textContent =
-					"Percentage Change in House Prices, Relative to Median Salary";
-				document.getElementById("min").textContent = "0%";
-				document.getElementById("max").textContent = "300%";
-				document.getElementById("year-selector").style.display = "none";
-				document.getElementById("meta").style.display = "none";
-				document.getElementById("hover").textContent =
-					"Hover over a area to see its value.";
-				updateLayerData(currentYear);
-			});
-
 		updateLayerData(currentYear);
 
 		const geocoder = new MapboxGeocoder({
@@ -328,16 +193,163 @@ const dropdownHtml = `<label for="year-selector" class="sr-only">Select Year</la
 
 		map.addControl(new mapboxgl.NavigationControl());
 
-		window.loadNewData = () => {
-			const selectedYearElement = document.getElementById(
-				"year-selector"
-			) as HTMLInputElement;
-			const selectedYear = parseInt(selectedYearElement.value, 10);
-			if (!isNaN(selectedYear) && selectedYear !== currentYear) {
-				currentYear = selectedYear;
+		document
+			.getElementById("year-selector")
+			.addEventListener("change", (event) => {
+				const selectedYear = parseInt(
+					(event.target as HTMLSelectElement).value,
+					10
+				);
+				if (!isNaN(selectedYear) && selectedYear !== currentYear) {
+					currentYear = selectedYear;
+					updateLayerData(currentYear);
+					updateMedianDisplay(currentYear);
+				}
+			});
+
+		document
+			.getElementById("pricesMapButton")
+			.addEventListener("click", () => {
+				mapMode = "prices";
 				updateLayerData(currentYear);
-				updateMedianDisplay(currentYear);
-			}
-		};
+				updateMapDisplay();
+			});
+
+		document
+			.getElementById("changeMapButton")
+			.addEventListener("click", () => {
+				mapMode = "changes";
+				updateLayerData(currentYear);
+				updateMapDisplay();
+			});
 	});
+
+	function updateLayerData(year) {
+		const source = `housing-${mapMode}-${year}`;
+		const layerId = `housing-layer-${mapMode}-${year}`;
+
+		if (map.getStyle().layers) {
+			map.getStyle().layers.forEach((layer) => {
+				if (layer.id.startsWith("housing-layer-")) {
+					map.removeLayer(layer.id);
+				}
+			});
+		}
+
+		if (map.getStyle().sources) {
+			Object.keys(map.getStyle().sources).forEach((sourceId) => {
+				if (sourceId.startsWith("housing-")) {
+					map.removeSource(sourceId);
+				}
+			});
+		}
+
+		const url =
+			mapMode === "prices"
+				? `https://map.jacobweinbren.workers.dev/housing-${year}/{z}/{x}/{y}.mvt`
+				: "https://map.jacobweinbren.workers.dev/housing-change/{z}/{x}/{y}.mvt";
+
+		map.addSource(source, {
+			type: "vector",
+			tiles: [url],
+			minzoom: 9,
+			maxzoom: 17,
+		});
+
+		const sourceLayer = mapMode === "prices" ? `${year}` : "housing_map";
+
+		console.log(getColorExpression(mapMode));
+
+		const firstLabelLayerId = map
+			.getStyle()
+			.layers.find((layer) => layer.type === "symbol").id;
+
+		map.addLayer(
+			{
+				id: layerId,
+				type: mapMode === "prices" ? "circle" : "fill",
+				source,
+				"source-layer": sourceLayer,
+				layout: {
+					visibility: "visible",
+				},
+				paint: {
+					[mapMode === "prices" ? "circle-color" : "fill-color"]:
+						getColorExpression(mapMode),
+					[mapMode === "prices" ? "circle-opacity" : "fill-opacity"]:
+						mapMode === "prices" ? 1 : 0.5,
+					...(mapMode === "prices" && {
+						"circle-radius": [
+							"interpolate",
+							["linear"],
+							["zoom"],
+							12,
+							1,
+							22,
+							20,
+						],
+					}),
+				},
+			},
+			firstLabelLayerId
+		);
+
+		map.on("mousemove", layerId, (e) => {
+			if (e.features.length > 0) {
+				const feature = e.features[0];
+				let hoverText = "";
+
+				if (mapMode === "prices") {
+					const price = feature.properties.price.toFixed(1);
+					hoverText = `This house cost <span class="font-semibold">${price} times</span> the median salary.`;
+				} else {
+					const change = (
+						(feature.properties.year_2022 /
+							feature.properties.year_1995 -
+							1) *
+						100
+					).toFixed(0);
+					hoverText = `This area's houses are worth <span class="font-semibold">${change}%</span> more in 2022 than 1995, relative to the median salary.`;
+				}
+
+				document.getElementById("hover").innerHTML = hoverText;
+			}
+		});
+
+		map.on("mouseleave", layerId, () => {
+			document.getElementById("hover").textContent =
+				"Hover over a point to see its value.";
+		});
+	}
+
+	function updateMedianDisplay(year) {
+		const medianValue = medianPriceData[year].toFixed(1);
+		const medianSalary = medianSalaryData[year];
+		const formattedSalary = new Intl.NumberFormat("en-GB", {
+			style: "currency",
+			currency: "GBP",
+			maximumSignificantDigits: 3,
+		}).format(medianSalary);
+
+		document.getElementById("year").textContent = `${year}`;
+		document.getElementById("times").textContent = `${medianValue} times`;
+		document.getElementById("salary").textContent = formattedSalary;
+	}
+
+	function updateMapDisplay() {
+		document.getElementById("title").textContent =
+			mapMode === "prices"
+				? "House Prices as a Multiple of Median Salary"
+				: "Percentage Change in House Prices, Relative to Median Salary";
+		document.getElementById("min").textContent =
+			mapMode === "prices" ? "0x" : "0%";
+		document.getElementById("max").textContent =
+			mapMode === "prices" ? "20x" : "300%";
+		document.getElementById("year-selector").style.display =
+			mapMode === "prices" ? "block" : "none";
+		document.getElementById("meta").style.display =
+			mapMode === "prices" ? "block" : "none";
+		document.getElementById("hover").textContent =
+			"Hover over a point to see its value.";
+	}
 </script>
