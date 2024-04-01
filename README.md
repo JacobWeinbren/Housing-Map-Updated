@@ -30,14 +30,7 @@
     tippecanoe --output=output/housing_map.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=9 --maximum-zoom=16 --simplification=30 -x fid -x id -x feature_code -x FID -x MSOA21CD -x MSOA21NM -x BNG_E -x BNG_N -x LONG -x LAT -x GlobalID -r1 output/housing_map.geojson
     ```
 
-4.  **Hosting**:
-    Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
-
-    ```
-    docker run -it -d -v /root/map-server:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
-    ```
-
-5.  **Data Binning and Analysis**:
+4.  **Data Binning and Analysis**:
     Run `bins.py` to calculate median and percentile values for property prices. Outputs in `bins.json`.
 
 ## Key Assumptions
@@ -60,63 +53,3 @@ Place the following files in the `data` directory:
 -   `combined_postcode_sales.csv`: Combined data with normalized prices.
 -   `housing_map.geojson`: Spatial data with average prices per area and year.
 -   `bins.json`: Percentile and median values for the dataset.
-
-## HTTPS Configuration with Nginx
-
-To serve the application securely over HTTPS, configure Nginx as a reverse proxy:
-
-1. **Edit Nginx Configuration**:
-   Update the Firewall. Edit the configuration for your domain:
-
-    ```
-    sudo ufw allow 'Nginx Full'
-    sudo ufw allow 443/tcp
-    sudo nano /etc/nginx/sites-available/map.kafkaesque.blog
-    ```
-
-2. **Configuration Details**:
-   Redirect HTTP to HTTPS and proxy HTTPS to port 8080. Use the provided SSL certificate paths.
-
-3. **Enable Site Configuration**:
-
-    ```
-    sudo ln -s /etc/nginx/sites-available/map.kafkaesque.blog /etc/nginx/sites-enabled/
-    ```
-
-4. **Test and Reload Nginx**:
-
-    ```
-    sudo nginx -t
-    sudo systemctl reload nginx
-    ```
-
-5. **Verify HTTPS Setup**:
-   Ensure the site `https://map.kafkaesque.blog` is accessible.
-
-## Obtaining SSL Certificate with Certbot
-
-1. **Install Certbot and Plugin**:
-
-    ```
-    sudo apt update
-    sudo apt install certbot python3-certbot-nginx
-    ```
-
-2. **Obtain and Install SSL Certificate**:
-
-    ```
-    sudo certbot --nginx -d map.kafkaesque.blog
-    ```
-
-3. **Verify Auto-Renewal**:
-
-    ```
-    sudo certbot renew --dry-run
-    ```
-
-4. **Check Scheduled Renewal**:
-   Verify the scheduling of the Certbot renewal process.
-
-    ```
-    systemctl list-timers | grep certbot
-    ```
